@@ -2,6 +2,7 @@
 using Notes.Application.Common.Mappings;
 using Notes.Application.Notes.Commands.CreateNote;
 using System.ComponentModel.DataAnnotations;
+using Notes.Application.Auth.Commands.Login;
 
 namespace Notes.WebApi.Models
 {
@@ -17,4 +18,6 @@ namespace Notes.WebApi.Models
                 .ForMember(x => x.Details, opt => opt.MapFrom(x => x.Details));
         }
     }
+
+ 
 }

@@ -22,8 +22,7 @@ namespace Notes.Application.Notes.Commands.UpdateNote
             }
             entity.Details = request.Details;
             entity.Title = request.Title;
-            entity.EditDate = DateTime.Now;
-
+            
             await _context.SaveChangesAsync(cancellationToken);
 
         }

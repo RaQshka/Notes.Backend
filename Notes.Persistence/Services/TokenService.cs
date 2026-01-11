@@ -98,7 +98,7 @@ public class TokenService : ITokenService
                 ValidIssuer = jwtSettings["Issuer"],
                 ValidateAudience = true,
                 ValidAudience = jwtSettings["Audience"],
-                ValidateLifetime = false, // Игнорируем срок действия
+                ValidateLifetime = false, 
                 ClockSkew = TimeSpan.Zero
             };
 

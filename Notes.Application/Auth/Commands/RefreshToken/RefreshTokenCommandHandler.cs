@@ -13,15 +13,18 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     private readonly ITokenService _tokenService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly UserManager<User> _userManager;
+    private readonly ICurrentUserService _currentUserService;
 
     public RefreshTokenCommandHandler(
         ITokenService tokenService,
         IRefreshTokenService refreshTokenService,
-        UserManager<User> userManager)
+        UserManager<User> userManager, 
+        ICurrentUserService currentUserService)
     {
         _tokenService = tokenService;
         _refreshTokenService = refreshTokenService;
         _userManager = userManager;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Result<RefreshTokenResponse>> Handle(RefreshTokenCommand request, CancellationToken ct)
@@ -42,18 +45,19 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         if (refreshToken == null || refreshToken.UserId != userGuid || !refreshToken.IsActive)
             return Result<RefreshTokenResponse>.Failure("Invalid refresh token");
 
-        var newRefreshToken = await _refreshTokenService.RotateRefreshTokenAsync(refreshToken, request.IpAddress);
+        var ipAddress = _currentUserService.GetIpAddress();
         
-        await _refreshTokenService.RevokeDescendantRefreshTokensAsync(refreshToken, request.IpAddress, 
+        var newRefreshToken = await _refreshTokenService.RotateRefreshTokenAsync(refreshToken, ipAddress);
+        
+        await _refreshTokenService.RevokeDescendantRefreshTokensAsync(refreshToken, ipAddress, 
             $"Attempted reuse of revoked ancestor token: {request.RefreshToken}");
 
-        // Generate new JWT token
         var newJwtToken = _tokenService.GenerateToken(user);
 
         return Result<RefreshTokenResponse>.Success(new RefreshTokenResponse
         {
             Token = newJwtToken,
-            Expiration = DateTime.UtcNow.AddMinutes(15), // Короткое время жизни
+            Expiration = DateTime.UtcNow.AddMinutes(15), 
             RefreshToken = newRefreshToken.Token
         });
     }

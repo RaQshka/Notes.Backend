@@ -18,8 +18,8 @@ namespace Notes.Application.Notes.Queries.GetNoteDetails
                 .ForMember(x => x.Id, opt => opt.MapFrom(note => note.Id))
                 .ForMember(x => x.Title, opt => opt.MapFrom(note => note.Title))
                 .ForMember(x => x.Details, opt => opt.MapFrom(note => note.Details))
-                .ForMember(x => x.CreationDate, opt => opt.MapFrom(note => note.CreationDate))
-                .ForMember(x => x.EditDate, opt => opt.MapFrom(note => note.EditDate));
+                .ForMember(x => x.CreationDate, opt => opt.MapFrom(note => note.CreatedAt))
+                .ForMember(x => x.EditDate, opt => opt.MapFrom(note => note.UpdatedAt));
 
         }
     }

@@ -15,17 +15,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private readonly SignInManager<User> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly IRefreshTokenService _refreshTokenService;
-
+    private readonly ICurrentUserService _userService;
+    
     public LoginCommandHandler(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         ITokenService tokenService,
-        IRefreshTokenService refreshTokenService)
+        IRefreshTokenService refreshTokenService, 
+        ICurrentUserService userService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _refreshTokenService = refreshTokenService;
+        _userService = userService;
     }
 
 
@@ -48,8 +51,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         var token = _tokenService.GenerateToken(user);
         
-        var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id, request.IpAddress);
-
+        var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id, _userService.GetIpAddress());
+        
         return Result<AuthResponseDto>.Success(new AuthResponseDto
         {
             Token = token,

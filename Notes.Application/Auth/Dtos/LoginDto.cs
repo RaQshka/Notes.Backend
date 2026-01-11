@@ -1,7 +1,12 @@
+using AutoMapper;
+using Notes.Application.Auth.Commands.Login;
+using Notes.Application.Common.Mappings;
+
 namespace Notes.Application.Auth.Dtos;
 
-public class LoginDto
+public class LoginDto 
 {
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    public string Username { get; set; }
+    public string Password { get; set; }
+    
 }

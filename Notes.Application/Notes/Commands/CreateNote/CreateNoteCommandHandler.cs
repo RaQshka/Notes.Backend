@@ -15,12 +15,9 @@ namespace Notes.Application.Notes.Commands.CreateNote
         {
             var note = new Note()
             {
-                Id = Guid.NewGuid(),
                 Title = request.Title,
-                CreationDate = DateTime.Now,
                 UserId = request.UserId,
                 Details = request.Details,
-                EditDate = null
             };
             await _context.Notes.AddAsync(note, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);

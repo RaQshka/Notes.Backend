@@ -13,38 +13,33 @@ using Notes.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
 builder.Services.AddHttpContextAccessor();
 
-// AutoMapper
 builder.Services.AddAutoMapper(config =>
 {
     config.AddProfile(new AssemblyMappingProfile(Assembly.GetExecutingAssembly()));
     config.AddProfile(new AssemblyMappingProfile(typeof(INotesDbContext).Assembly));
 });
 
-// Application and Persistence layers
 builder.Services
     .AddApplication()
     .AddPersistence(builder.Configuration);
 
-// Controllers
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Notes API", Version = "v1" });
 
-    // Add JWT Auth to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme.",
+        Description = "Введите JWT-токен без префикса 'Bearer'",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -63,7 +58,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -74,9 +68,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-// JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var secretKey = jwtSettings["Secret"] ?? "your-super-secret-key-at-least-32-characters-long";
+var secretKey = jwtSettings["Secret"];
 
 builder.Services.AddAuthentication(options =>
 {
@@ -100,15 +93,12 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Database initialization
 using (var scope = app.Services.CreateScope())
 {
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<NotesDbContext>();
         DbInitializer.Initialize(context);
-        
-        // Optional: Create roles and admin user
         await SeedData(scope.ServiceProvider);
     }
     catch (Exception ex)
@@ -118,7 +108,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -130,12 +119,11 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-app.UseCustomExceptionBuilder(); // Make sure this middleware exists
+app.UseCustomExceptionBuilder();
 app.UseRouting();
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-// IMPORTANT: Authentication before Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -149,7 +137,6 @@ async Task SeedData(IServiceProvider serviceProvider)
     var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-    // Create roles if they don't exist
     string[] roleNames = { "Admin", "User" };
     foreach (var roleName in roleNames)
     {
@@ -160,7 +147,6 @@ async Task SeedData(IServiceProvider serviceProvider)
         }
     }
 
-    // Create admin user if doesn't exist
     var adminUser = await userManager.FindByEmailAsync("admin@notes.com");
     if (adminUser == null)
     {

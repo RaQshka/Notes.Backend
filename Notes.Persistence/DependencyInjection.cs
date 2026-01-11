@@ -13,7 +13,6 @@ namespace Notes.Persistence
         public static IServiceCollection AddPersistence(this IServiceCollection services, 
             IConfiguration configuration)
         {
-            // SQLite подключение - используем правильное имя строки подключения
             services.AddDbContext<NotesDbContext>(options =>
                 options.UseSqlite(
                     configuration.GetConnectionString("DefaultConnection") ?? "Data Source=notes.db",
@@ -23,13 +22,14 @@ namespace Notes.Persistence
             
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-            
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+
             services.AddIdentity<User, IdentityRole<Guid>>(options =>
                 {
-                    options.Password.RequiredLength = 6;
+                    options.Password.RequiredLength = 8;
                     options.Password.RequireDigit = true;
                     options.Password.RequireLowercase = true;
-                    options.Password.RequireUppercase = false;
+                    options.Password.RequireUppercase = true;
                     options.Password.RequireNonAlphanumeric = false;
                 
                     options.User.RequireUniqueEmail = true;

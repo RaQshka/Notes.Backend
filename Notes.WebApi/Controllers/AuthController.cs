@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
@@ -14,8 +15,8 @@ using Notes.Domain;
 namespace Notes.WebApi.Controllers;
 
 [ApiController]
-[Route("[controller]")]
-public class AuthController:BaseController
+[Route("api/[controller]")]
+public class AuthController : BaseController
 {
     private readonly ILogger<AuthController> _logger;
     private readonly IMediator _mediator;
@@ -37,6 +38,8 @@ public class AuthController:BaseController
         }   
         return Ok(result.Data);
     }
+    
+    
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterCommand request)
     {
@@ -60,11 +63,10 @@ public class AuthController:BaseController
         }   
         return Ok(result.Data);
     }
+    
     [HttpPost("refresh-token")]
     public async Task<ActionResult<RefreshTokenResponse>> RefreshToken(RefreshTokenCommand command)
     {
-        command.IpAddress = GetIpAddress();
-    
         var result = await _mediator.Send(command);
     
         if (!result.Succeeded)
@@ -77,8 +79,6 @@ public class AuthController:BaseController
     [HttpPost("revoke-token")]
     public async Task<ActionResult> RevokeToken(RevokeTokenCommand command)
     {
-        command.IpAddress = GetIpAddress();
-    
         var result = await _mediator.Send(command);
     
         if (!result.Succeeded)
@@ -86,12 +86,5 @@ public class AuthController:BaseController
 
         return Ok(new { message = "Token revoked successfully" });
     }
-    private string GetIpAddress()
-    {
-        if (Request.Headers.ContainsKey("X-Forwarded-For"))
-            return Request.Headers["X-Forwarded-For"]!;
 
-        return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? "unknown";
-    }
-    
 }
